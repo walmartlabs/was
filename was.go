@@ -31,7 +31,6 @@ Move list of files to files with a .was extension, and move them back if they al
 WIP
 
 Make it return non-zero if there were any errors
-Make it do directories
 Let user choose the extension
 
 
@@ -60,8 +59,13 @@ Let user choose the extension
 	for _, file := range wasFiles {
 
 		if verbose {
-			fmt.Fprintf(os.Stderr, "handling file:%s:\n", file)
+			fmt.Fprintf(os.Stderr, "handling file:%s:len(file):%d:\n", file, len(file))
 		}
+
+                //chop off slash from directories
+                if file[len(file) - 1] == "/"[0] {
+                  file = file[0:len(file) - 1]
+                }
 
 		if file == ext {
 			fmt.Fprintf(os.Stderr, "ignoring .was:%v\n")
