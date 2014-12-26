@@ -23,11 +23,11 @@ It leaves them all right in the same dir so you can see what you've been doing.
 Examples
 ========
 
-was thisFile -> thisFile.was
-was thisFile.was -> thisFile
-was thisFile thatFile.was -> thisFile.was thatFile
+    was thisFile -> thisFile.was
+    was thisFile.was -> thisFile
+    was thisFile thatFile.was -> thisFile.was thatFile
 
-was filename1 [filename2 filename3 ...]
+    was filename1 [filename2 filename3 ...]
 
 WIP
 
