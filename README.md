@@ -1,7 +1,12 @@
 was
 ===
 
-Simple/stupid obstacle remover. It takes a file or directory named something like file11 and turns it into file11.was and vice-versa. 
+
+Description:
+============
+
+Stupid simple but useful tool to move a file r directory and move it back later.
+Was moves a list of files to files with a .was extension, and/or moves them back if they already have a .was extension.
 
 Some file's in your way and you'll probably want it again later?  Was it.
 
@@ -15,11 +20,18 @@ It sounds stupid but its very handy.
 
 It leaves them all right in the same dir so you can see what you've been doing.
 
+Examples
+========
 
-Usage
-=====
+was thisFile -> thisFile.was
+was thisFile.was -> thisFile
+was thisFile thatFile.was -> thisFile.was thatFile
 
-was file1 -> file1.was
+was filename1 [filename2 filename3 ...]
 
-was file1.was -> file
+WIP
+
+Make it return non-zero if there were any errors
+Let user choose the extension.
+Read file list from STDIN
 

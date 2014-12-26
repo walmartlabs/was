@@ -63,13 +63,16 @@ func main() {
 
         Description:
 
-        Stupid simple but useful tool to move a file and move it back later.
+Stupid simple but useful tool to move a file r directory and move it back later.
+Was moves a list of files to files with a .was extension, and/or moves them back if they already have a .was extension.
 
 	Examples:
 
-was filename1 [filename2 filename3 ...]
+was thisFile -> thisFile.was
+was thisFile.was -> thisFile
+was thisFile thatFile.was -> thisFile.was thatFile
 
-Move list of files to files with a .was extension, and move them back if they already have a .was extension.
+was filename1 [filename2 filename3 ...]
 
 WIP
 
