@@ -5,7 +5,7 @@ was
 Description:
 ============
 
-Stupid simple but useful tool to move a file r directory and move it back later.
+Stupid simple but useful tool to move a file or directory and move it back later.
 Was moves a list of files to files with a .was extension, and/or moves them back if they already have a .was extension.
 
 Some file's in your way and you'll probably want it again later?  Was it.
