@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-        "log"
 )
 
 var verbose bool
@@ -24,7 +23,8 @@ func askForConfirmation() bool {
 
         response, err := consolereader.ReadString('\n')
 	if err != nil {
-		log.Fatal(err)
+		fmt.Printf("%v\n", err)
+		os.Exit(2)
 	}
 	okayResponses := []string{"y", "Y", "yes", "Yes", "YES"}
 	nokayResponses := []string{"n", "N", "no", "No", "NO"}
