@@ -7,6 +7,7 @@ Description:
 
 Stupid simple but useful tool to move a file or directory and move it back later.
 Was moves a list of files to files with a .was extension, and/or moves them back if they already have a .was extension.
+Moves directories, and handles conflicts in a sensible way.
 
 Some file's in your way and you'll probably want it again later?  Was it.
 
