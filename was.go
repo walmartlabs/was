@@ -6,14 +6,17 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"io"
 )
 
 var verbose bool
 var force bool
+var copy bool
 
 var ext string = ".was"
 
 func init() {
+	flag.BoolVar(&copy, "c", false, "copy instead of move")
 	flag.BoolVar(&force, "f", false, "clobber any conflicting files")
 	flag.BoolVar(&verbose, "v", false, "verbose output")
 }
@@ -73,6 +76,7 @@ Was moves a list of files to files with a .was extension, and/or moves them back
 was thisFile -> thisFile.was
 was thisFile.was -> thisFile
 was thisFile thatFile.was -> thisFile.was thatFile
+was -c someFile -> someFile someFile.was
 
 was filename1 [filename2 filename3 ...]
 
@@ -166,9 +170,56 @@ Read file list from STDIN
 			fmt.Fprintf(os.Stderr, "target is clear:%s\n", file)
 		}
 
-		if err := os.Rename(file, targetFile); err != nil {
-			fmt.Fprintf(os.Stderr, "failed to was:%v\n", err)
-			continue
+		if copy {
+
+			copyFileHandle, err := os.Open(file)
+			if err != nil {
+
+				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
+				continue
+
+			}
+			defer copyFileHandle.Close()
+
+			finfo, err := copyFileHandle.Stat()
+			if err != nil {
+
+				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
+				continue
+
+			}
+
+			if fmode := finfo.Mode(); fmode.IsDir() {
+
+				fmt.Fprintf(os.Stderr, "skipping:copy is not supported for directories\n")
+				continue
+
+			}
+
+			targetFileHandle, err := os.Create(targetFile)
+			if err != nil {
+
+				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
+				continue
+
+			}
+			defer targetFileHandle.Close()
+
+			_, err = io.Copy(copyFileHandle, targetFileHandle)
+			if err != nil {
+
+				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
+				continue
+
+			}
+
+		} else {
+
+			if err := os.Rename(file, targetFile); err != nil {
+				fmt.Fprintf(os.Stderr, "failed to was:%v\n", err)
+				continue
+			}
+
 		}
 
 		if verbose {

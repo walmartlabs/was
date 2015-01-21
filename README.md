@@ -32,6 +32,7 @@ Examples
 
 WIP
 
+Add a -c option to make it copy instead of move
 Make it return non-zero if there were any errors
 Let user choose the extension.
 Read file list from STDIN
