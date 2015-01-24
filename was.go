@@ -205,7 +205,7 @@ Read file list from STDIN
 			}
 			defer targetFileHandle.Close()
 
-			_, err = io.Copy(copyFileHandle, targetFileHandle)
+			_, err = io.Copy(targetFileHandle, copyFileHandle)
 			if err != nil {
 
 				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
