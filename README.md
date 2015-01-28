@@ -39,8 +39,19 @@ Examples
     was thisFile -> thisFile.was
     was thisFile.was -> thisFile
     was thisFile thatFile.was -> thisFile.was thatFile
+    was -c thisFile -> thisFile thisFile.was
 
     was filename1 [filename2 filename3 ...]
+
+    was --help
+      .
+      .
+      .
+      -c=false: copy instead of move
+      -f=false: clobber any conflicting files
+      -v=false: verbose output
+
+
 
 WIP
 
