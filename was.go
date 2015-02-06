@@ -23,44 +23,6 @@ func init() {
 	flag.BoolVar(&verbose, "v", false, "verbose output")
 }
 
-//swiped this from a gist:
-//https://gist.github.com/albrow/5882501
-func askForConfirmation() bool {
-	consolereader := bufio.NewReader(os.Stdin)
-
-	response, err := consolereader.ReadString('\n')
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(2)
-	}
-	okayResponses := []string{"y", "Y", "yes", "Yes", "YES"}
-	nokayResponses := []string{"n", "N", "no", "No", "NO"}
-	if containsString(okayResponses, response[:len(response)-1]) {
-		return true
-	} else if containsString(nokayResponses, response[:len(response)-1]) {
-		return false
-	} else {
-		fmt.Println("Please type yes or no and then press enter:")
-		return askForConfirmation()
-	}
-}
-
-// posString returns the first index of element in slice.
-// If slice does not contain element, returns -1.
-func posString(slice []string, element string) int {
-	for index, elem := range slice {
-		if elem == element {
-			return index
-		}
-	}
-	return -1
-}
-
-// containsString returns true iff slice contains element
-func containsString(slice []string, element string) bool {
-	return !(posString(slice, element) == -1)
-}
-
 func main() {
 	flag.Usage = func() {
 
@@ -202,4 +164,42 @@ FileLoop:
 			fmt.Fprintf(os.Stderr, "was'd:%s\n", file)
 		}
 	}
+}
+
+//swiped this from a gist:
+//https://gist.github.com/albrow/5882501
+func askForConfirmation() bool {
+	consolereader := bufio.NewReader(os.Stdin)
+
+	response, err := consolereader.ReadString('\n')
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(2)
+	}
+	okayResponses := []string{"y", "Y", "yes", "Yes", "YES"}
+	nokayResponses := []string{"n", "N", "no", "No", "NO"}
+	if containsString(okayResponses, response[:len(response)-1]) {
+		return true
+	} else if containsString(nokayResponses, response[:len(response)-1]) {
+		return false
+	} else {
+		fmt.Println("Please type yes or no and then press enter:")
+		return askForConfirmation()
+	}
+}
+
+// posString returns the first index of element in slice.
+// If slice does not contain element, returns -1.
+func posString(slice []string, element string) int {
+	for index, elem := range slice {
+		if elem == element {
+			return index
+		}
+	}
+	return -1
+}
+
+// containsString returns true iff slice contains element
+func containsString(slice []string, element string) bool {
+	return !(posString(slice, element) == -1)
 }
