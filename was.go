@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -118,9 +119,7 @@ FileLoop:
 		}
 
 		//chop off slash from directories
-		if file[len(file)-1] == '/' {
-			file = file[0 : len(file)-1]
-		}
+		file = filepath.Clean(file)
 
 		if file == ext {
 			fmt.Fprintf(os.Stderr, "ignoring %s:%v\n", ext)
