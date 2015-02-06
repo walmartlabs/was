@@ -17,6 +17,8 @@ var copy bool
 
 var ext string = ".was"
 
+var errors bool = false
+
 func init() {
 	flag.BoolVar(&copy, "c", false, "copy instead of move")
 	flag.StringVar(&ext, "e", ext, "file extension")
@@ -92,6 +94,7 @@ FileLoop:
 				if askForConfirmation() {
 					if err := os.RemoveAll(targetFile); err != nil {
 						fmt.Fprintf(os.Stderr, "could not clear the way for new was file:skipping:%v\n", err)
+						errors = true
 						continue FileLoop
 					}
 				} else {
@@ -109,6 +112,7 @@ FileLoop:
 			copyFileHandle, err := os.Open(file)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
+				errors = true
 				continue FileLoop
 			}
 			defer copyFileHandle.Close()
@@ -116,17 +120,20 @@ FileLoop:
 			finfo, err := copyFileHandle.Stat()
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
+				errors = true
 				continue FileLoop
 			}
 
 			if fmode := finfo.Mode(); fmode.IsDir() {
 				fmt.Fprintf(os.Stderr, "skipping:copy is not supported for directories\n")
+				errors = true
 				continue FileLoop
 			}
 
 			targetFileHandle, err := os.Create(targetFile)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
+				errors = true
 				continue FileLoop
 			}
 			defer targetFileHandle.Close()
@@ -134,11 +141,13 @@ FileLoop:
 			_, err = io.Copy(targetFileHandle, copyFileHandle)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
+				errors = true
 				continue FileLoop
 			}
 		} else {
 			if err := os.Rename(file, targetFile); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to was:%v\n", err)
+				errors = true
 				continue FileLoop
 			}
 		}
@@ -146,6 +155,9 @@ FileLoop:
 		if verbose {
 			fmt.Fprintf(os.Stderr, "was'd:%s\n", file)
 		}
+	}
+	if errors {
+		os.Exit(1)
 	}
 }
 
