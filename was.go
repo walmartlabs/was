@@ -61,7 +61,6 @@ func containsString(slice []string, element string) bool {
 }
 
 func main() {
-
 	flag.Usage = func() {
 
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
@@ -87,8 +86,6 @@ WIP
 Make it return non-zero if there were any errors
 Let user choose the extension.
 Read file list from STDIN
-
-
 `)
 
 		flag.PrintDefaults()
@@ -100,10 +97,8 @@ Read file list from STDIN
 	wasFiles := flag.Args()
 
 	if len(wasFiles) < 1 {
-
 		flag.Usage()
 		os.Exit(2)
-
 	}
 
 	flag.Parse()
@@ -117,7 +112,6 @@ Read file list from STDIN
 	}
 
 	for _, file := range wasFiles {
-
 		if verbose {
 			fmt.Fprintf(os.Stderr, "handling file:%s:len(file):%d:\n", file, len(file))
 		}
@@ -139,23 +133,17 @@ Read file list from STDIN
 
 		targetFile := file + ext
 		if strings.HasSuffix(file, ext) {
-
 			if verbose {
 				fmt.Fprintf(os.Stderr, "doing unwas on:%s\n", targetFile)
 			}
-
 			targetFile = file[0 : len(file)-len(ext)]
-
 		}
 
 		if _, err := os.Stat(targetFile); err == nil {
-
 			if verbose {
 				fmt.Fprintf(os.Stderr, "target is blocked:%s\n", targetFile)
 			}
-
 			if !force {
-
 				fmt.Printf("There's a file in the way:%s:\n", targetFile)
 				fmt.Printf("Delete %s? Please type yes or no and then press enter:\n", targetFile)
 				if askForConfirmation() {
@@ -167,9 +155,7 @@ Read file list from STDIN
 					fmt.Fprintf(os.Stderr, "user chose to not delete target:skipping:%s\n", targetFile)
 					continue
 				}
-
 			}
-
 		}
 
 		if verbose {
@@ -177,61 +163,45 @@ Read file list from STDIN
 		}
 
 		if copy {
-
 			copyFileHandle, err := os.Open(file)
 			if err != nil {
-
 				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
 				continue
-
 			}
 			defer copyFileHandle.Close()
 
 			finfo, err := copyFileHandle.Stat()
 			if err != nil {
-
 				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
 				continue
-
 			}
 
 			if fmode := finfo.Mode(); fmode.IsDir() {
-
 				fmt.Fprintf(os.Stderr, "skipping:copy is not supported for directories\n")
 				continue
-
 			}
 
 			targetFileHandle, err := os.Create(targetFile)
 			if err != nil {
-
 				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
 				continue
-
 			}
 			defer targetFileHandle.Close()
 
 			_, err = io.Copy(targetFileHandle, copyFileHandle)
 			if err != nil {
-
 				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
 				continue
-
 			}
-
 		} else {
-
 			if err := os.Rename(file, targetFile); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to was:%v\n", err)
 				continue
 			}
-
 		}
 
 		if verbose {
 			fmt.Fprintf(os.Stderr, "was'd:%s\n", file)
 		}
-
 	}
-
 }
