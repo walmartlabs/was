@@ -225,14 +225,11 @@ was thisFile.was -> thisFile
 was thisFile thatFile.was -> thisFile.was thatFile
 was -c someFile -> someFile someFile.was
 was -e=saw someFile -> someFile.saw
+ls -1 | was -> file1.was file2.was file3.was ...
 
 was filename1 [filename2 filename3 ...]
 
 WIP
-
-Make it return non-zero if there were any errors
-Let user choose the extension.
-Read file list from STDIN
 `)
 
 	flag.PrintDefaults()
