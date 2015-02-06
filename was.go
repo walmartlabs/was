@@ -24,36 +24,7 @@ func init() {
 }
 
 func main() {
-	flag.Usage = func() {
-
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, `
-
-        Description:
-
-Stupid simple but useful tool to move a file or directory and move it back later.
-Was moves a list of files to files with a .was extension, and/or moves them back if they already have a .was extension.
-
-	Examples:
-
-was thisFile -> thisFile.was
-was thisFile.was -> thisFile
-was thisFile thatFile.was -> thisFile.was thatFile
-was -c someFile -> someFile someFile.was
-was -e=saw someFile -> someFile.saw
-
-was filename1 [filename2 filename3 ...]
-
-WIP
-
-Make it return non-zero if there were any errors
-Let user choose the extension.
-Read file list from STDIN
-`)
-
-		flag.PrintDefaults()
-		fmt.Fprintf(os.Stderr, "\n")
-	}
+	flag.Usage = usage
 
 	flag.Parse()
 
@@ -202,4 +173,34 @@ func posString(slice []string, element string) int {
 // containsString returns true iff slice contains element
 func containsString(slice []string, element string) bool {
 	return !(posString(slice, element) == -1)
+}
+
+func usage() {
+	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, `
+
+        Description:
+
+Stupid simple but useful tool to move a file or directory and move it back later.
+Was moves a list of files to files with a .was extension, and/or moves them back if they already have a .was extension.
+
+	Examples:
+
+was thisFile -> thisFile.was
+was thisFile.was -> thisFile
+was thisFile thatFile.was -> thisFile.was thatFile
+was -c someFile -> someFile someFile.was
+was -e=saw someFile -> someFile.saw
+
+was filename1 [filename2 filename3 ...]
+
+WIP
+
+Make it return non-zero if there were any errors
+Let user choose the extension.
+Read file list from STDIN
+`)
+
+	flag.PrintDefaults()
+	fmt.Fprintf(os.Stderr, "\n")
 }
