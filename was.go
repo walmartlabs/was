@@ -102,8 +102,6 @@ Read file list from STDIN
 		os.Exit(2)
 	}
 
-	flag.Parse()
-
 	if !strings.HasPrefix(ext, ".") {
 		ext = "." + ext
 	}
