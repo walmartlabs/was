@@ -111,6 +111,7 @@ Read file list from STDIN
 		fmt.Println("hello world:%v:%s:", verbose, wasFiles)
 	}
 
+FileLoop:
 	for _, file := range wasFiles {
 		if verbose {
 			fmt.Fprintf(os.Stderr, "handling file:%s:len(file):%d:\n", file, len(file))
@@ -123,12 +124,12 @@ Read file list from STDIN
 
 		if file == ext {
 			fmt.Fprintf(os.Stderr, "ignoring %s:%v\n", ext)
-			continue
+			continue FileLoop
 		}
 
 		if _, err := os.Stat(file); err != nil {
 			fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
-			continue
+			continue FileLoop
 		}
 
 		targetFile := file + ext
@@ -149,11 +150,11 @@ Read file list from STDIN
 				if askForConfirmation() {
 					if err := os.RemoveAll(targetFile); err != nil {
 						fmt.Fprintf(os.Stderr, "could not clear the way for new was file:skipping:%v\n", err)
-						continue
+						continue FileLoop
 					}
 				} else {
 					fmt.Fprintf(os.Stderr, "user chose to not delete target:skipping:%s\n", targetFile)
-					continue
+					continue FileLoop
 				}
 			}
 		}
@@ -166,37 +167,37 @@ Read file list from STDIN
 			copyFileHandle, err := os.Open(file)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
-				continue
+				continue FileLoop
 			}
 			defer copyFileHandle.Close()
 
 			finfo, err := copyFileHandle.Stat()
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
-				continue
+				continue FileLoop
 			}
 
 			if fmode := finfo.Mode(); fmode.IsDir() {
 				fmt.Fprintf(os.Stderr, "skipping:copy is not supported for directories\n")
-				continue
+				continue FileLoop
 			}
 
 			targetFileHandle, err := os.Create(targetFile)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
-				continue
+				continue FileLoop
 			}
 			defer targetFileHandle.Close()
 
 			_, err = io.Copy(targetFileHandle, copyFileHandle)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
-				continue
+				continue FileLoop
 			}
 		} else {
 			if err := os.Rename(file, targetFile); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to was:%v\n", err)
-				continue
+				continue FileLoop
 			}
 		}
 
