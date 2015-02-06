@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,6 +32,10 @@ func main() {
 	wasFiles := flag.Args()
 
 	if len(wasFiles) < 1 {
+		wasFiles = filesFromStdin()
+	}
+
+	if len(wasFiles) < 1 {
 		flag.Usage()
 		os.Exit(2)
 	}
@@ -45,6 +50,13 @@ func main() {
 
 FileLoop:
 	for _, file := range wasFiles {
+		if file == "" {
+			if verbose {
+				fmt.Fprintf(os.Stderr, "ignoring empty file\n")
+			}
+			continue FileLoop
+		}
+
 		if verbose {
 			fmt.Fprintf(os.Stderr, "handling file:%s:len(file):%d:\n", file, len(file))
 		}
@@ -173,6 +185,16 @@ func posString(slice []string, element string) int {
 // containsString returns true iff slice contains element
 func containsString(slice []string, element string) bool {
 	return !(posString(slice, element) == -1)
+}
+
+func filesFromStdin() []string {
+	bytes, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(2)
+	}
+
+	return strings.Split(string(bytes), "\n")
 }
 
 func usage() {
