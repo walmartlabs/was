@@ -17,6 +17,7 @@ var ext string = ".was"
 
 func init() {
 	flag.BoolVar(&copy, "c", false, "copy instead of move")
+	flag.StringVar(&ext, "e", ext, "file extension")
 	flag.BoolVar(&force, "f", false, "clobber any conflicting files")
 	flag.BoolVar(&verbose, "v", false, "verbose output")
 }
@@ -77,6 +78,7 @@ was thisFile -> thisFile.was
 was thisFile.was -> thisFile
 was thisFile thatFile.was -> thisFile.was thatFile
 was -c someFile -> someFile someFile.was
+was -e=saw someFile -> someFile.saw
 
 was filename1 [filename2 filename3 ...]
 
@@ -106,6 +108,10 @@ Read file list from STDIN
 
 	flag.Parse()
 
+	if !strings.HasPrefix(ext, ".") {
+		ext = "." + ext
+	}
+
 	if verbose {
 		fmt.Println("hello world:%v:%s:", verbose, wasFiles)
 	}
@@ -122,7 +128,7 @@ Read file list from STDIN
 		}
 
 		if file == ext {
-			fmt.Fprintf(os.Stderr, "ignoring .was:%v\n")
+			fmt.Fprintf(os.Stderr, "ignoring %s:%v\n", ext)
 			continue
 		}
 
