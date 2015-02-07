@@ -40,6 +40,8 @@ Examples
     was thisFile.was -> thisFile
     was thisFile thatFile.was -> thisFile.was thatFile
     was -c thisFile -> thisFile thisFile.was
+    was -e=saw thisFile -> thisFile.saw
+    ls -1 | was -> file1.was file2.was file3.was ...
 
     was filename1 [filename2 filename3 ...]
 
@@ -47,6 +49,8 @@ Examples
       .
       .
       .
+      -e=.was: the extension to operate on (the dot will be
+        prepended automatically if missing)
       -c=false: copy instead of move
       -f=false: clobber any conflicting files
       -v=false: verbose output
@@ -54,10 +58,3 @@ Examples
 
 
 WIP
-
-Make it return non-zero if there were any errors
-
-Let user choose the extension.
-
-Read file list from STDIN
-

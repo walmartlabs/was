@@ -5,7 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -15,10 +17,148 @@ var copy bool
 
 var ext string = ".was"
 
+var errors bool = false
+
 func init() {
 	flag.BoolVar(&copy, "c", false, "copy instead of move")
+	flag.StringVar(&ext, "e", ext, "file extension")
 	flag.BoolVar(&force, "f", false, "clobber any conflicting files")
 	flag.BoolVar(&verbose, "v", false, "verbose output")
+}
+
+func main() {
+	flag.Usage = usage
+
+	flag.Parse()
+
+	wasFiles := flag.Args()
+
+	if len(wasFiles) < 1 {
+		wasFiles = filesFromStdin()
+	}
+
+	if len(wasFiles) < 1 {
+		flag.Usage()
+		os.Exit(2)
+	}
+
+	if !strings.HasPrefix(ext, ".") {
+		ext = "." + ext
+	}
+
+	if verbose {
+		fmt.Println("hello world:%v:%s:", verbose, wasFiles)
+	}
+
+FileLoop:
+	for _, file := range wasFiles {
+		if file == "" {
+			if verbose {
+				fmt.Fprintf(os.Stderr, "ignoring empty file\n")
+			}
+			continue FileLoop
+		}
+
+		if verbose {
+			fmt.Fprintf(os.Stderr, "handling file:%s:len(file):%d:\n", file, len(file))
+		}
+
+		//chop off slash from directories
+		file = filepath.Clean(file)
+
+		if file == ext {
+			fmt.Fprintf(os.Stderr, "ignoring %s:%v\n", ext)
+			continue FileLoop
+		}
+
+		if _, err := os.Stat(file); err != nil {
+			fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
+			continue FileLoop
+		}
+
+		targetFile := file + ext
+		if strings.HasSuffix(file, ext) {
+			if verbose {
+				fmt.Fprintf(os.Stderr, "doing unwas on:%s\n", targetFile)
+			}
+			targetFile = file[0 : len(file)-len(ext)]
+		}
+
+		if _, err := os.Stat(targetFile); err == nil {
+			if verbose {
+				fmt.Fprintf(os.Stderr, "target is blocked:%s\n", targetFile)
+			}
+			if !force {
+				fmt.Printf("There's a file in the way:%s:\n", targetFile)
+				fmt.Printf("Delete %s? Please type yes or no and then press enter:\n", targetFile)
+				if askForConfirmation() {
+					if err := os.RemoveAll(targetFile); err != nil {
+						fmt.Fprintf(os.Stderr, "could not clear the way for new was file:skipping:%v\n", err)
+						errors = true
+						continue FileLoop
+					}
+				} else {
+					fmt.Fprintf(os.Stderr, "user chose to not delete target:skipping:%s\n", targetFile)
+					continue FileLoop
+				}
+			}
+		}
+
+		if verbose {
+			fmt.Fprintf(os.Stderr, "target is clear:%s\n", file)
+		}
+
+		if copy {
+			copyFileHandle, err := os.Open(file)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
+				errors = true
+				continue FileLoop
+			}
+			defer copyFileHandle.Close()
+
+			finfo, err := copyFileHandle.Stat()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
+				errors = true
+				continue FileLoop
+			}
+
+			if fmode := finfo.Mode(); fmode.IsDir() {
+				fmt.Fprintf(os.Stderr, "skipping:copy is not supported for directories\n")
+				errors = true
+				continue FileLoop
+			}
+
+			targetFileHandle, err := os.Create(targetFile)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
+				errors = true
+				continue FileLoop
+			}
+			defer targetFileHandle.Close()
+
+			_, err = io.Copy(targetFileHandle, copyFileHandle)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
+				errors = true
+				continue FileLoop
+			}
+		} else {
+			if err := os.Rename(file, targetFile); err != nil {
+				fmt.Fprintf(os.Stderr, "failed to was:%v\n", err)
+				errors = true
+				continue FileLoop
+			}
+		}
+
+		if verbose {
+			fmt.Fprintf(os.Stderr, "was'd:%s\n", file)
+		}
+	}
+	if errors {
+		os.Exit(1)
+	}
 }
 
 //swiped this from a gist:
@@ -59,12 +199,19 @@ func containsString(slice []string, element string) bool {
 	return !(posString(slice, element) == -1)
 }
 
-func main() {
+func filesFromStdin() []string {
+	bytes, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(2)
+	}
 
-	flag.Usage = func() {
+	return strings.Split(string(bytes), "\n")
+}
 
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, `
+func usage() {
+	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, `
 
         Description:
 
@@ -77,155 +224,14 @@ was thisFile -> thisFile.was
 was thisFile.was -> thisFile
 was thisFile thatFile.was -> thisFile.was thatFile
 was -c someFile -> someFile someFile.was
+was -e=saw someFile -> someFile.saw
+ls -1 | was -> file1.was file2.was file3.was ...
 
 was filename1 [filename2 filename3 ...]
 
 WIP
-
-Make it return non-zero if there were any errors
-Let user choose the extension.
-Read file list from STDIN
-
-
 `)
 
-		flag.PrintDefaults()
-		fmt.Fprintf(os.Stderr, "\n")
-	}
-
-	flag.Parse()
-
-	wasFiles := flag.Args()
-
-	if len(wasFiles) < 1 {
-
-		flag.Usage()
-		os.Exit(2)
-
-	}
-
-	flag.Parse()
-
-	if verbose {
-		fmt.Println("hello world:%v:%s:", verbose, wasFiles)
-	}
-
-	for _, file := range wasFiles {
-
-		if verbose {
-			fmt.Fprintf(os.Stderr, "handling file:%s:len(file):%d:\n", file, len(file))
-		}
-
-		//chop off slash from directories
-		if file[len(file)-1] == '/' {
-			file = file[0 : len(file)-1]
-		}
-
-		if file == ext {
-			fmt.Fprintf(os.Stderr, "ignoring .was:%v\n")
-			continue
-		}
-
-		if _, err := os.Stat(file); err != nil {
-			fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
-			continue
-		}
-
-		targetFile := file + ext
-		if strings.HasSuffix(file, ext) {
-
-			if verbose {
-				fmt.Fprintf(os.Stderr, "doing unwas on:%s\n", targetFile)
-			}
-
-			targetFile = file[0 : len(file)-len(ext)]
-
-		}
-
-		if _, err := os.Stat(targetFile); err == nil {
-
-			if verbose {
-				fmt.Fprintf(os.Stderr, "target is blocked:%s\n", targetFile)
-			}
-
-			if !force {
-
-				fmt.Printf("There's a file in the way:%s:\n", targetFile)
-				fmt.Printf("Delete %s? Please type yes or no and then press enter:\n", targetFile)
-				if askForConfirmation() {
-					if err := os.RemoveAll(targetFile); err != nil {
-						fmt.Fprintf(os.Stderr, "could not clear the way for new was file:skipping:%v\n", err)
-						continue
-					}
-				} else {
-					fmt.Fprintf(os.Stderr, "user chose to not delete target:skipping:%s\n", targetFile)
-					continue
-				}
-
-			}
-
-		}
-
-		if verbose {
-			fmt.Fprintf(os.Stderr, "target is clear:%s\n", file)
-		}
-
-		if copy {
-
-			copyFileHandle, err := os.Open(file)
-			if err != nil {
-
-				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
-				continue
-
-			}
-			defer copyFileHandle.Close()
-
-			finfo, err := copyFileHandle.Stat()
-			if err != nil {
-
-				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
-				continue
-
-			}
-
-			if fmode := finfo.Mode(); fmode.IsDir() {
-
-				fmt.Fprintf(os.Stderr, "skipping:copy is not supported for directories\n")
-				continue
-
-			}
-
-			targetFileHandle, err := os.Create(targetFile)
-			if err != nil {
-
-				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
-				continue
-
-			}
-			defer targetFileHandle.Close()
-
-			_, err = io.Copy(targetFileHandle, copyFileHandle)
-			if err != nil {
-
-				fmt.Fprintf(os.Stderr, "skipping:%v\n", err)
-				continue
-
-			}
-
-		} else {
-
-			if err := os.Rename(file, targetFile); err != nil {
-				fmt.Fprintf(os.Stderr, "failed to was:%v\n", err)
-				continue
-			}
-
-		}
-
-		if verbose {
-			fmt.Fprintf(os.Stderr, "was'd:%s\n", file)
-		}
-
-	}
-
+	flag.PrintDefaults()
+	fmt.Fprintf(os.Stderr, "\n")
 }
